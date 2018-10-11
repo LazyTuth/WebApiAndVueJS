@@ -50,6 +50,7 @@ namespace DemoApp.API
                                             ValidateAudience = false
                                         };
                                     });
+            services.AddCors();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -65,6 +66,7 @@ namespace DemoApp.API
             }
 
             //app.UseHttpsRedirection();
+            app.UseCors(x => x.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod());
             app.UseAuthentication();
             app.UseMvc();
         }

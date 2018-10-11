@@ -22,6 +22,7 @@ namespace DemoApp.API.Controllers
             _productRepo = productRepo;
         }
 
+        [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
