@@ -69,6 +69,7 @@ namespace DemoApp.API.Controllers
             var token = tokenHandler.CreateToken(tokenDescriptor);
 
             return Ok(new {
+                userId = userFromRepo.Id,
                 token = tokenHandler.WriteToken(token)
             });
         }

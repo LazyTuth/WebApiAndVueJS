@@ -1,11 +1,13 @@
 import Vue from "vue";
 import Router from "vue-router";
 import Home from "./views/Home.vue";
-import Product from './views/Product.vue';
+import Product from "./views/Product.vue";
+import SignIn from "./components/auth/SignIn.vue";
+import SignUp from "./components/auth/SignUp.vue";
 
 Vue.use(Router);
 
-export default new Router({
+export const router = new Router({
   mode: "history",
   base: process.env.BASE_URL,
   routes: [
@@ -18,6 +20,16 @@ export default new Router({
       path: "/product",
       name: "product",
       component: Product
+    },
+    {
+      path: "/signin",
+      name: "signin",
+      component: SignIn
+    },
+    {
+      path: "/signup",
+      name: "signup",
+      component: SignUp
     },
     {
       path: "/about",

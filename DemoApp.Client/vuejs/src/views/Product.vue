@@ -25,24 +25,23 @@
 </template>
 
 <script>
-import {APIServices} from '../services/APIServices.js';
+import { APIServices } from "../services/APIServices.js";
 const apiServices = new APIServices();
 export default {
-    data: function() {
-        return {
-            products: []
-        };
-    },
-    methods: {
-        getProduct() {
-            apiServices.getAllProduct().then(data => {
-                this.products = data;
-            });
-        }
-    },
-    mounted() {
-        this.getProduct();
-    },
-}
+  data: function() {
+    return {
+      products: []
+    };
+  },
+  methods: {
+    getProduct() {
+      apiServices.getAllProduct().then(data => {
+        this.products = data;
+      });
+    }
+  },
+  mounted() {
+    this.getProduct();
+  }
+};
 </script>
-
