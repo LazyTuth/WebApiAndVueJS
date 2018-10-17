@@ -70,6 +70,7 @@ namespace DemoApp.API.Controllers
 
             return Ok(new {
                 userId = userFromRepo.Id,
+                userFullname = userFromRepo.FirstName + ' ' + userFromRepo.LastName,
                 token = tokenHandler.WriteToken(token)
             });
         }

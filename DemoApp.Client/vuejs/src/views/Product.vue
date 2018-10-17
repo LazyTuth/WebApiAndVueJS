@@ -25,8 +25,6 @@
 </template>
 
 <script>
-import { APIServices } from "../services/APIServices.js";
-const apiServices = new APIServices();
 export default {
   data: function() {
     return {
@@ -35,7 +33,7 @@ export default {
   },
   methods: {
     getProduct() {
-      apiServices.getAllProduct().then(data => {
+      this.$store.dispatch("getProduct").then(data => {
         this.products = data;
       });
     }

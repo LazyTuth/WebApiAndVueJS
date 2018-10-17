@@ -4,6 +4,8 @@ import Home from "./views/Home.vue";
 import Product from "./views/Product.vue";
 import SignIn from "./components/auth/SignIn.vue";
 import SignUp from "./components/auth/SignUp.vue";
+import Dashboard from "./components/dashboard/Dashboard.vue";
+import store from "./store";
 
 Vue.use(Router);
 
@@ -14,12 +16,24 @@ export const router = new Router({
     {
       path: "/",
       name: "home",
-      component: Home
+      component: Home,
+      beforeEnter(from, to, next) {
+        if (store.state.token) {
+          next();
+        } else {
+          next("/signin");
+        }
+      }
     },
     {
       path: "/product",
       name: "product",
       component: Product
+    },
+    {
+      path: "/dashboard",
+      name: "dashboard",
+      component: Dashboard
     },
     {
       path: "/signin",
@@ -30,15 +44,6 @@ export const router = new Router({
       path: "/signup",
       name: "signup",
       component: SignUp
-    },
-    {
-      path: "/about",
-      name: "about",
-      // route level code-splitting
-      // this generates a separate chunk (about.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: () =>
-        import(/* webpackChunkName: "about" */ "./views/About.vue")
     }
   ]
 });
