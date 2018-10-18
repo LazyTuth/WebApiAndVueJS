@@ -59,11 +59,12 @@ namespace DemoApp.API.Controllers
             };
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config.GetSection("AppSettings:Token").Value));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+            var expirationDate = DateTime.Now.AddHours(1);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
                 SigningCredentials = creds,
-                Expires = DateTime.Now.AddDays(1)
+                Expires = expirationDate
             };
             var tokenHandler = new JwtSecurityTokenHandler();
             var token = tokenHandler.CreateToken(tokenDescriptor);
@@ -71,7 +72,8 @@ namespace DemoApp.API.Controllers
             return Ok(new {
                 userId = userFromRepo.Id,
                 userFullname = userFromRepo.FirstName + ' ' + userFromRepo.LastName,
-                token = tokenHandler.WriteToken(token)
+                token = tokenHandler.WriteToken(token),
+                expiration = expirationDate
             });
         }
     }

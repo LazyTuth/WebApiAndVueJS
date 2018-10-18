@@ -11,9 +11,6 @@ export default {
   computed: {
     userFullName() {
       return this.$store.getters.userFullname;
-    },
-    userId() {
-      return this.$store.getters.userId;
     }
   }
 };

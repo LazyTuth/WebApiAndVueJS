@@ -1,37 +1,49 @@
 <template>
     <header id="header">
-        <div class="logo">
-          <router-link to="/">DemoApp</router-link>
-        </div>
-        <nav>
-          <ul>
-            <li v-if="auth">
-              <router-link to="/dashboard">Dashboard</router-link>
-            </li>
-            <li>
-              <router-link to="/product">Product</router-link>
-            </li>
-            <li v-if="!auth">
-              <router-link to="/signup">Sign Up</router-link>
-            </li>
-            <li v-if="!auth">
-              <router-link to="/signin">Sign In</router-link>
-            </li>
-            <li v-if="auth">
-              <button class="logout" @click="onLogout">Logout</button>
-            </li>
-          </ul>
+        <nav class="navbar navbar-expand-lg navbar-light bg-light custom-navbar">
+            <a class="navbar-brand" href="#">Demo App</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul v-if="isAuthenticated" class="navbar-nav mr-auto">
+                    <router-link class="nav-item" tag="li" active-class="active" exact to="/">
+                      <a class="nav-link">Dashboard</a>
+                    </router-link>
+                    <li class="nav-item dropdown">
+                      <a class="nav-link dropdown-toggle" 
+                                    id="navbarDropdown" 
+                                    role="button" 
+                                    data-toggle="dropdown" 
+                                    aria-haspopup="true" 
+                                    aria-expanded="false">Admin</a>
+                      <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                          <router-link class="dropdown-item" to="admin/product">Product</router-link>
+                      </div>
+                    </li>
+                </ul>
+                <ul class="navbar-nav ml-auto">
+                    <router-link v-if="!isAuthenticated" class="nav-item" tag="li" active-class="active" exact to="/signup">
+                      <a class="nav-link">Sign Up</a>
+                    </router-link>
+                    <router-link v-if="!isAuthenticated" class="nav-item" tag="li" active-class="active" exact to="/signin">
+                      <a class="nav-link">Sign In</a>
+                    </router-link>
+                    <li v-if="isAuthenticated" class="nav-item">
+                        <button class="nav-link logout" @click="onLogout">Logout</button>
+                    </li>
+                </ul>
+            </div>
         </nav>
     </header>
-    
 </template>
 
 <script>
+import { mapGetters } from "vuex";
 export default {
   computed: {
-    auth() {
-      return this.$store.getters.isAuthenticated;
-    }
+    ...mapGetters(["isAuthenticated"])
   },
   methods: {
     onLogout() {
@@ -43,55 +55,15 @@ export default {
 
 
 <style scoped>
-#header {
-  height: 56px;
-  display: flex;
-  flex-flow: row;
-  justify-content: space-between;
-  align-items: center;
-  background-color: #521751;
-  padding: 0 20px;
+.custom-navbar {
+  background-color: #521751 !important;
 }
-
-.logo {
-  font-weight: bold;
-  color: white;
+.custom-navbar > a {
+  color: whitesmoke !important;
 }
-
-.logo a {
-  text-decoration: none;
-  color: white;
+.nav-link {
+  color: whitesmoke !important;
 }
-
-nav {
-  height: 100%;
-}
-
-ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  display: flex;
-  flex-flow: row;
-  align-items: center;
-}
-
-li {
-  margin: 0 16px;
-}
-
-li a {
-  text-decoration: none;
-  color: white;
-}
-
-li a:hover,
-li a:active,
-li a.router-link-active {
-  color: #fa923f;
-}
-
 .logout {
   background-color: transparent;
   border: none;

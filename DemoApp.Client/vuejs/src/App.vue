@@ -1,7 +1,9 @@
 <template>
   <div id="app">
     <app-header />
-    <router-view/>
+    <div class="container">
+      <router-view/>
+    </div>
   </div>
 </template>
 
@@ -11,6 +13,9 @@ export default {
   name: "app",
   components: {
     "app-header": Header
+  },
+  created() {
+    this.$store.dispatch("keepLogin");
   }
 };
 </script>
