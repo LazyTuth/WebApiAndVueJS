@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using DemoApp.API.Data;
@@ -6,6 +8,7 @@ using DemoApp.API.Dtos;
 using DemoApp.API.services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 
 namespace DemoApp.API.Controllers
 {
@@ -16,21 +19,69 @@ namespace DemoApp.API.Controllers
     {
         private readonly IRepository<Product> _productRepo;
         private readonly IMapper _mapper;
-        public ProductController(IRepository<Product> productRepo, IMapper mapper)
+        private readonly IUrlHelper _urlHelper;
+        private readonly IConfiguration _config;
+        public ProductController(IRepository<Product> productRepo, IMapper mapper, IUrlHelper urlHelper, IConfiguration config)
         {
+            _config = config;
+            _urlHelper = urlHelper;
             _mapper = mapper;
             _productRepo = productRepo;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAll()
+        [HttpGet(Name="GetProducts")]
+        public async Task<IActionResult> GetProducts()
         {
-            var productFromRepo = await _productRepo.GetAll();
-            var product = _mapper.Map<IEnumerable<ProductDto>>(productFromRepo);
-            return Ok(product);
+            PagingParams pagingParams = new PagingParams {
+                PageNumber = 1,
+                PageSize = Int32.Parse(_config.GetSection("AppSettings:PageSize").Value)
+            };
+
+            var productFromRepo = await _productRepo.GetDataPaging(pagingParams);
+            var product = _mapper.Map<IEnumerable<ProductDto>>(productFromRepo.List);
+            var outputModel = new ProductOutputModel
+            {
+                Paging = productFromRepo.GetHeader(),
+                Links = GetLinks(productFromRepo),
+                Items = product.ToList()
+            };
+            return Ok(outputModel);
         }
 
-        [AllowAnonymous]
+        private List<LinkInfo> GetLinks(PagedList<Product> list)
+        {
+            var links = new List<LinkInfo>();
+            if (list.HasPreviousPage)
+            {
+                links.Add(CreateLink("GetProducts", list.PreviousPageNumber, list.PageSize, "previousPage", "GET"));
+            }
+            links.Add(CreateLink("GetProducts", list.PageNumber, list.PageSize, "self", "GET"));
+            if (list.HasNextPage)
+            {
+                links.Add(CreateLink("GetProducts", list.NextPageNumber, list.PageSize, "nextPage", "GET"));
+            }
+            return links;
+        }
+
+        private LinkInfo CreateLink(string routeName, int pageNumber, int pageSize, string rel, string method)
+        {
+            var test = _urlHelper.Link(routeName, new
+                {
+                    PageNumber = pageNumber,
+                    PageSize = pageSize
+                });
+            return new LinkInfo
+            {
+                Href = _urlHelper.Link(routeName, new
+                {
+                    PageNumber = pageNumber,
+                    PageSize = pageSize
+                }),
+                Rel = rel,
+                Method = method
+            };
+        }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetProductById(int id)
         {

@@ -17,6 +17,10 @@ namespace DemoApp.API.services
             _context = context;
             _entities = _context.Set<T>();
         }
+        public async Task<PagedList<T>> GetDataPaging(PagingParams pagingParams) {
+            var query = await _entities.ToListAsync();
+            return new PagedList<T>(query.AsQueryable(), pagingParams.PageNumber, pagingParams.PageSize);
+        }
         public async Task<IEnumerable<T>> GetAll()
         {
             return await _entities.ToListAsync();

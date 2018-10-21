@@ -43,6 +43,22 @@ namespace DemoApp.API.Controllers
             return StatusCode(201);
         }
 
+        public string CreateJwtToken(Claim[] claims, DateTime expirationDate)
+        {
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config.GetSection("AppSettings:Token").Value));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claims),
+                SigningCredentials = creds,
+                Expires = expirationDate
+            };
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+
+            return tokenHandler.WriteToken(token);
+        }
+
         [HttpPost("login")]
         public async Task<IActionResult> Login(UserForLoginDto userDto)
         {
@@ -57,22 +73,13 @@ namespace DemoApp.API.Controllers
                 new Claim(ClaimTypes.NameIdentifier, userFromRepo.Id.ToString()),
                 new Claim(ClaimTypes.Name, userFromRepo.Username)
             };
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config.GetSection("AppSettings:Token").Value));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
-            var expirationDate = DateTime.Now.AddHours(1);
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(claims),
-                SigningCredentials = creds,
-                Expires = expirationDate
-            };
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var token = tokenHandler.CreateToken(tokenDescriptor);
+            var expirationDate = DateTime.Now.AddHours(5);
+            var token = CreateJwtToken(claims, expirationDate);
 
             return Ok(new {
                 userId = userFromRepo.Id,
                 userFullname = userFromRepo.FirstName + ' ' + userFromRepo.LastName,
-                token = tokenHandler.WriteToken(token),
+                token = token,
                 expiration = expirationDate
             });
         }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using DemoApp.API.Data;
 
 namespace DemoApp.API.services
 {
@@ -13,6 +14,9 @@ namespace DemoApp.API.services
         Task<T> InsertAsync(T entity);
         Task<T> UpdateAsync(T entity, object key);
         Task<int> DeleteAsync(T entity);
+
+        Task<PagedList<T>> GetDataPaging(PagingParams pagingParams);
+
         void Save();
     }
 }
