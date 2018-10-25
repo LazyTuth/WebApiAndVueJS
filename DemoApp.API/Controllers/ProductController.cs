@@ -30,10 +30,10 @@ namespace DemoApp.API.Controllers
         }
 
         [HttpGet(Name="GetProducts")]
-        public async Task<IActionResult> GetProducts()
+        public async Task<IActionResult> GetProducts(int? pageNumber = 1)
         {
             PagingParams pagingParams = new PagingParams {
-                PageNumber = 1,
+                PageNumber = pageNumber.Value,
                 PageSize = Int32.Parse(_config.GetSection("AppSettings:PageSize").Value)
             };
 
@@ -42,44 +42,9 @@ namespace DemoApp.API.Controllers
             var outputModel = new ProductOutputModel
             {
                 Paging = productFromRepo.GetHeader(),
-                Links = GetLinks(productFromRepo),
                 Items = product.ToList()
             };
             return Ok(outputModel);
-        }
-
-        private List<LinkInfo> GetLinks(PagedList<Product> list)
-        {
-            var links = new List<LinkInfo>();
-            if (list.HasPreviousPage)
-            {
-                links.Add(CreateLink("GetProducts", list.PreviousPageNumber, list.PageSize, "previousPage", "GET"));
-            }
-            links.Add(CreateLink("GetProducts", list.PageNumber, list.PageSize, "self", "GET"));
-            if (list.HasNextPage)
-            {
-                links.Add(CreateLink("GetProducts", list.NextPageNumber, list.PageSize, "nextPage", "GET"));
-            }
-            return links;
-        }
-
-        private LinkInfo CreateLink(string routeName, int pageNumber, int pageSize, string rel, string method)
-        {
-            var test = _urlHelper.Link(routeName, new
-                {
-                    PageNumber = pageNumber,
-                    PageSize = pageSize
-                });
-            return new LinkInfo
-            {
-                Href = _urlHelper.Link(routeName, new
-                {
-                    PageNumber = pageNumber,
-                    PageSize = pageSize
-                }),
-                Rel = rel,
-                Method = method
-            };
         }
 
         [HttpGet("{id}")]
@@ -88,6 +53,55 @@ namespace DemoApp.API.Controllers
             var productFromRepo = await _productRepo.Find(id);
             var product = _mapper.Map<ProductDto>(productFromRepo);
             return Ok(product);
+        }
+
+        [HttpPost("create")]
+        public async Task<IActionResult> Create(CreateProductDto dataToCreate)
+        {
+            var productFromRepo = await _productRepo.GetSingleWithCondition(s => s.ProductName == dataToCreate.ProductName);
+            if (productFromRepo != null)
+                return BadRequest("Product Exists !!!");
+
+            var product = _mapper.Map<Product>(dataToCreate);
+            var isInsert = await _productRepo.InsertAsync(product);
+            if (isInsert != null)
+            {
+                return CreatedAtRoute("GetProducts", null);
+            }
+            else
+            {
+                return BadRequest();
+            }
+        }
+
+        [HttpPatch("edit")]
+        public async Task<IActionResult> Edit(EditProductDto dataToEdit)
+        {
+            var product = _mapper.Map<Product>(dataToEdit);
+            var isUpdate = await _productRepo.UpdateAsync(product, dataToEdit.ProductId);
+            if (isUpdate != null)
+            {
+                return CreatedAtRoute("GetProducts", null);
+            }
+            else
+            {
+                return BadRequest();
+            }
+        }
+
+        [HttpDelete("delete")]
+        public async Task<IActionResult> Delete(int productId)
+        {
+            var product = await _productRepo.Find(productId);
+            int isDelete = await _productRepo.DeleteAsync(product);
+            if (isDelete > 0)
+            {
+                return NoContent();
+            }
+            else
+            {
+                return BadRequest();
+            }
         }
     }
 }

@@ -27,7 +27,7 @@
                     <input type="password" id="confirm-password" v-model="confirmPassword">
                 </div>
                 <div class="submit">
-                    <button type="submit">submit</button>
+                    <button type="submit">Submit</button>
                 </div>
             </form>
         </div>
@@ -57,8 +57,6 @@ export default {
         password: this.password,
         confirmPassword: this.confirmPassword
       };
-
-      console.log(formData);
       this.$store.dispatch("signUp", formData);
     }
   }

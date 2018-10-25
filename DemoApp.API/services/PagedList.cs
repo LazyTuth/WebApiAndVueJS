@@ -26,7 +26,7 @@ namespace DemoApp.API.services
 
         public PagingHeader GetHeader()
         {
-            return new PagingHeader (this.TotalItems, this.PageNumber, this.PageSize, this.TotalPages);
+            return new PagingHeader (this.TotalItems, this.PageNumber, this.PageSize, this.TotalPages, this.HasPreviousPage, this.HasNextPage);
         }
     }
 }

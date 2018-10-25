@@ -1,10 +1,8 @@
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using DemoApp.API.Data;
 
 namespace DemoApp.API.Dtos
 {
-    public class CreateEditProductDto
+    public class CreateProductDto
     {
         [Required]
         [StringLength(50, MinimumLength = 5)]
@@ -12,12 +10,12 @@ namespace DemoApp.API.Dtos
         [StringLength(100)]
         public string Description { get; set; }
         [Required]
+        [RegularExpression("^[0-9]*$", ErrorMessage = "Price must be numeric")]
         public string Price { get; set; }
 
         public string ImageUrl { get; set; }
 
         [Required]
         public string ProductCateCode { get; set; }
-        public IEnumerable<ProductCategory> ListCate { get; set; }
     }
 }

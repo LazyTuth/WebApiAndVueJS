@@ -10,6 +10,7 @@ namespace DemoApp.API.services
     {
         Task<IEnumerable<T>> GetAll();
         Task<IEnumerable<T>> GetAllWithCondition(Expression<Func<T, bool>> expression);
+        Task<T> GetSingleWithCondition(Expression<Func<T, bool>> expression);
         Task<T> Find(object id);
         Task<T> InsertAsync(T entity);
         Task<T> UpdateAsync(T entity, object key);

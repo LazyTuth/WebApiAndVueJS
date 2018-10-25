@@ -9,10 +9,14 @@ namespace DemoApp.API.Helpers
     {
         public AutoMapperProfiles()
         {
-            CreateMap<Product, ProductDto>().ForMember(dest => dest.Price, options => options.MapFrom(src => src.Price.ToString("c")))
-                                            .ForMember(dest => dest.ProductCateName, options => options.MapFrom(src => src.ProductCategory.Description));
-            CreateMap<CreateEditProductDto, Product>().ForMember(dest => dest.Price, options => options.MapFrom(src => Decimal.Parse(src.Price)))
+            // CreateMap<Product, ProductDto>().ForMember(dest => dest.Price, options => options.MapFrom(src => src.Price.ToString("C0")))
+            //                                 .ForMember(dest => dest.ProductCateName, options => options.MapFrom(src => src.ProductCategory.Description));
+            CreateMap<CreateProductDto, Product>().ForMember(dest => dest.Price, options => options.MapFrom(src => Decimal.Parse(src.Price)))
                                             .ForMember(dest => dest.ProductCategory, options => options.Ignore());
+            CreateMap<EditProductDto, Product>().ForMember(dest => dest.Price, options => options.MapFrom(src => Decimal.Parse(src.Price)))
+                                            .ForMember(dest => dest.ProductCategory, options => options.Ignore())
+                                            .ForMember(dest => dest.Id, options => options.MapFrom(src => src.ProductId));
+            CreateMap<Product, ProductDto>().ForMember(dest => dest.ProductCateName, options => options.MapFrom(src => src.ProductCategory.Description));
         }
     }
 }
