@@ -7,11 +7,11 @@
             </button>
 
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul v-if="isAuthenticated" class="navbar-nav mr-auto">
+                <ul class="navbar-nav mr-auto">
                     <router-link class="nav-item" tag="li" active-class="active" exact to="/">
                       <a class="nav-link">Dashboard</a>
                     </router-link>
-                    <li class="nav-item dropdown">
+                    <li v-if="isAuthenticated" class="nav-item dropdown">
                       <a class="nav-link dropdown-toggle" 
                                     id="navbarDropdown" 
                                     role="button" 
@@ -27,11 +27,16 @@
                     <router-link v-if="!isAuthenticated" class="nav-item" tag="li" active-class="active" exact to="/signup">
                       <a class="nav-link">Sign Up</a>
                     </router-link>
+                    <li v-if="!isAuthenticated" class="nav-item"><a class="nav-link">|</a></li>
                     <router-link v-if="!isAuthenticated" class="nav-item" tag="li" active-class="active" exact to="/signin">
                       <a class="nav-link">Sign In</a>
                     </router-link>
                     <li v-if="isAuthenticated" class="nav-item">
-                        <button class="nav-link logout" @click="onLogout">Logout</button>
+                      <a class="nav-link">Hello {{ userFullName }}</a>
+                    </li>
+                    <li v-if="isAuthenticated" class="nav-item"><a class="nav-link">|</a></li>
+                    <li v-if="isAuthenticated" class="nav-item">
+                      <button class="nav-link logout" @click="onLogout">Logout</button>
                     </li>
                 </ul>
             </div>
@@ -43,7 +48,10 @@
 import { mapGetters } from "vuex";
 export default {
   computed: {
-    ...mapGetters(["isAuthenticated"])
+    ...mapGetters(["isAuthenticated"]),
+    userFullName() {
+      return this.$store.getters.userFullname;
+    }
   },
   methods: {
     onLogout() {
@@ -70,5 +78,8 @@ export default {
   font: inherit;
   color: whitesmoke;
   cursor: pointer;
+}
+.nav-link:hover {
+  color: rgb(116, 113, 113) !important;
 }
 </style>

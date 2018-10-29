@@ -1,4 +1,7 @@
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
 
 namespace DemoApp.API.Dtos
 {
@@ -13,9 +16,16 @@ namespace DemoApp.API.Dtos
         [RegularExpression("^[0-9]*$", ErrorMessage = "Price must be numeric")]
         public string Price { get; set; }
 
-        public string ImageUrl { get; set; }
+        //public string ImageUrl { get; set; }
 
         [Required]
         public string ProductCateCode { get; set; }
+        
+        //public DateTime CreatedDate { get; set; }
+
+        // public CreateProductDto()
+        // {
+        //     this.CreatedDate = DateTime.Now;
+        // }
     }
 }

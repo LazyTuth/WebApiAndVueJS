@@ -67,7 +67,8 @@ const actions = {
         localStorage.setItem("expireIn", expDate);
 
         dispatch("setLogoutTimer", expSecond);
-        router.replace("/admin/product");
+        // router.replace("/admin/product");
+        router.replace("/");
       })
       .catch(error => console.log(error));
   },

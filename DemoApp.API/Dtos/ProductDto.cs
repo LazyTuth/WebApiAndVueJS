@@ -12,6 +12,8 @@ namespace DemoApp.API.Dtos
         public string ImageUrl { get; set; }
         public string ProductCateCode { get; set; }
         public string ProductCateName { get; set; }
+
+        public List<string> ListImages { get; set; }
     }
 
     public class ProductOutputModel

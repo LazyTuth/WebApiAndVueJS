@@ -78,6 +78,7 @@ namespace DemoApp.API
             }
 
             //app.UseHttpsRedirection();
+            app.UseStaticFiles();
             app.UseCors(x => x.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod());
             app.UseAuthentication();
             app.UseMvc();

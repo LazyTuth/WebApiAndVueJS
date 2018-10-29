@@ -14,9 +14,11 @@ namespace DemoApp.API.Dtos
         [RegularExpression("^[0-9]*$", ErrorMessage = "Price must be numeric")]
         public string Price { get; set; }
 
-        public string ImageUrl { get; set; }
+        // public string ImageUrl { get; set; }
 
         [Required]
         public string ProductCateCode { get; set; }
+
+        public bool isAddNewFiles { get; set; }
     }
 }

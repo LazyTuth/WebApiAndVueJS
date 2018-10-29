@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using DemoApp.API.Data;
@@ -28,7 +29,7 @@ namespace DemoApp.API.Controllers
         {
             var productFromRepo = await _cateRepo.GetAll();
             var prdCate = _mapper.Map<IEnumerable<ProductCateDto>>(productFromRepo);
-            return Ok(prdCate);
+            return Ok(prdCate.OrderBy(s => s.Description));
         }
     }
 }

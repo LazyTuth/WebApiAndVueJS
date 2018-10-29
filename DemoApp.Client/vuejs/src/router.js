@@ -21,21 +21,7 @@ export const router = new Router({
     {
       path: "/",
       name: "dashboard",
-      component: Dashboard,
-      beforeEnter(from, to, next) {
-        if (localStorage.getItem("token")) {
-          const now = new Date();
-          if (now < new Date(localStorage.expireIn)) {
-            next();
-          } else {
-            deleteLocalStorage();
-            next("/signin");
-          }
-        } else {
-          deleteLocalStorage();
-          next("/signin");
-        }
-      }
+      component: Dashboard
     },
     {
       path: "/admin",

@@ -26,7 +26,7 @@
                 </tr>
             </tbody>
         </table>
-        <div class="flex_column_custom">
+        <div class="flex_column_custom" v-if="lstDataObjects.length > 0">
             <div class="custom-paging-info">
                 Items {{firstRowOnPage}} to {{lastRowOnPage}} of {{totalRows}}
             </div>
@@ -58,9 +58,41 @@
                 <input type="text" class="form-control" id="price" name="price" @keyup="onKeyUpFunction($event)" v-model="newDisplay">
                 <span class="currency-symbol">$</span>
               </div>
-              <div class="form-group">
+              <div v-if="(isModalCreate && !isReUploadImages)||(!isModalCreate && isReUploadImages)" class="form-group">
                 <label for="price">Images</label>
-                <input type="text" class="form-control" id="images" name="images" v-model="imagesUrl">
+                <!-- <input type="text" class="form-control" id="images" name="images" v-model="imagesUrl"> -->
+                <div class="dropbox" v-if="isInitial || isSaving">
+                  <input type="file" multiple name="Image" ref="image" :disabled="isSaving" @change="filesChange($event.target.name, $event.target.files); fileCount = $event.target.files.length"
+                    accept="image/*" class="input-file">
+                  <p v-if="isInitial">
+                    Drag your file(s) here to begin<br> or click to browse
+                  </p>
+                  <p v-if="isSaving">
+                    Uploading {{ fileCount }} files...
+                  </p>
+                </div>
+
+                <div v-if="isSuccess">
+                  <p>
+                    <a href="javascript:void(0)" @click="reset()">Upload again</a>
+                  </p>
+                  <div class="list-unstyled" id="preloadFiles">
+                    <!-- <li v-for="item in listFileToUpload" :key="item.originalName">
+                      <img :src="item.url" class="img-responsive img-thumbnail" :alt="item.originalName">
+                    </li> -->
+                  </div>
+                </div>
+              </div>
+              <div v-if="justForEditPopUp" class="form-group">
+                <label for="price">Images</label>
+                <div>
+                  <p>
+                    <a href="javascript:void(0)" @click="reset(); justForEditPopUp = false; isReUploadImages = true">Upload again ? It will remove all Old images</a>
+                  </p>
+                  <div class="list-unstyled">
+                    <img v-for="image in listProductImagesEdit" style="width:100px;" :key="image" :src="rootApiUrl + imagesUrl + '/' + image" :alt="productName">
+                  </div>
+                </div>
               </div>
               <div class="form-group">
                 <label for="productCate">Product Category</label>
@@ -80,7 +112,7 @@
     </div>
 </template>
 
-<style>
+<style scoped>
 .flex_column_custom {
   display: flex;
   justify-content: flex-end;
@@ -135,15 +167,46 @@
   padding-left: 1rem;
   width: 100%;
 }
+
+.dropbox {
+  outline: 2px dashed whitesmoke; /* the dash box */
+  outline-offset: -10px;
+  background: #6b5b95;
+  color: whitesmoke;
+  padding: 10px 10px;
+  min-height: 200px; /* minimum height */
+  position: relative;
+  cursor: pointer;
+}
+
+.input-file {
+  opacity: 0; /* invisible but it's there! */
+  width: 100%;
+  height: 200px;
+  position: absolute;
+  cursor: pointer;
+}
+
+.dropbox:hover {
+  background: #453a5f; /* when mouse over to the drop zone, change color */
+}
+
+.dropbox p {
+  font-size: 1.2em;
+  text-align: center;
+  padding: 50px 0;
+}
 </style>
 
 <script>
 import { modalMixin } from "../../mixins/modalMixin.js";
 import { pagingMixin } from "../../mixins/pagingMixin.js";
 import { formatPriceMixin } from "../../mixins/formatPriceMixin.js";
+import { uploadFileMixin } from "../../mixins/uploadFileMixin.js";
 export default {
   data: function() {
     return {
+      rootApiUrl: "http://localhost:5000/",
       lstDataObjects: [],
       productSelectedId: null,
       productName: null,
@@ -153,7 +216,10 @@ export default {
       isInputActive: false,
       selected: null,
       dataProductCate: [],
-      modalTitle: null
+      modalTitle: null,
+      isReUploadImages: false,
+      justForEditPopUp: false,
+      listProductImagesEdit: []
     };
   },
   methods: {
@@ -180,23 +246,30 @@ export default {
         .catch(err => console.log(err));
     },
     async onFormSubmit() {
-      const formData = {
-        ProductName: this.productName,
-        Description: this.description,
-        Price: parseInt(this.price),
-        ImageUrl: this.imagesUrl,
-        ProductCateCode: this.selected
-      };
+      debugger;
+      const formDataTest = new FormData();
+      if (this.listFileToUpload.length > 0) {
+        this.listFileToUpload.forEach(element => {
+          formDataTest.append(element.name, element);
+        });
+      }
+
+      formDataTest.append("ProductName", this.productName);
+      formDataTest.append("Description", this.description);
+      formDataTest.append("Price", parseInt(this.price));
+      formDataTest.append("ProductCateCode", this.selected);
       if (this.isModalCreate) {
-        await this.$store.dispatch("createProduct", formData).then(res => {
+        await this.$store.dispatch("createProduct", formDataTest).then(res => {
           if (res === 201) {
             this.closeModal();
             this.onChangePageNumber(this.pageNumber);
           }
         });
       } else {
-        formData.productId = this.productSelectedId;
-        await this.$store.dispatch("updateProduct", formData).then(res => {
+        //formData.productId = this.productSelectedId;
+        formDataTest.append("ProductId", this.productSelectedId);
+        formDataTest.append("isAddNewFiles", this.isReUploadImages);
+        await this.$store.dispatch("updateProduct", formDataTest).then(res => {
           if (res === 201) {
             this.closeModal();
             this.onChangePageNumber(this.pageNumber);
@@ -212,15 +285,18 @@ export default {
       if (type !== "create") {
         this.modalTitle = "Edit Product";
         this.isModalCreate = false;
+        this.justForEditPopUp = true;
         await this.$store
           .dispatch("getProductById", { id: productId })
           .then(res => {
+            debugger;
             self.productSelectedId = productId;
             self.productName = res.productName;
             self.description = res.description;
             self.price = res.price;
             self.imagesUrl = res.imageUrl;
             self.selected = res.productCateCode;
+            self.listProductImagesEdit = res.listImages;
           })
           .catch(err => console.log(err));
       } else {
@@ -264,11 +340,15 @@ export default {
       this.imagesUrl = null;
       this.selected = null;
       this.isModalCreate = true;
+      this.isReUploadImages = false;
+      this.justForEditPopUp = false;
+      this.listProductImagesEdit = [];
     }
   },
-  mixins: [modalMixin, pagingMixin, formatPriceMixin],
+  mixins: [modalMixin, pagingMixin, formatPriceMixin, uploadFileMixin],
   mounted() {
     this.onChangePageNumber();
+    this.reset();
   }
 };
 </script>

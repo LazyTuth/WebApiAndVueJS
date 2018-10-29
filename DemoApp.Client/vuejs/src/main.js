@@ -9,6 +9,7 @@ import "bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "@fortawesome/fontawesome-free";
 import "@fortawesome/fontawesome-free/css/all.min.css";
+import "./assets/mySite.css";
 import VueSweetalert2 from "vue-sweetalert2";
 import Modal from "./components/modal/Modal.vue";
 
