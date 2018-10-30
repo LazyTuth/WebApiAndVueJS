@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DemoApp.API.Controllers
 {
-    [Authorize]
     [Route("api/category")]
     [ApiController]
     public class ProductCategoryController : ControllerBase

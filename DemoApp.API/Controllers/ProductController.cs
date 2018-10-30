@@ -15,7 +15,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace DemoApp.API.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     [Route("api/products")]
     [ApiController]
     public class ProductController : ControllerBase

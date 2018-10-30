@@ -14,12 +14,12 @@ namespace DemoApp.API.services
         }
         public async Task<User> Login(string username, string password)
         {
-            var user = await _context.User.FirstOrDefaultAsync(x => x.Username == username);
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.UserName == username);
             if (user == null)
                 return null;
             
-            if (!VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt))
-                return null;
+            // if (!VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt))
+            //     return null;
             
             return user;
         }
@@ -43,10 +43,10 @@ namespace DemoApp.API.services
             byte[] passwordHash, passwordSalt;
             CreatePasswordHash(password, out passwordHash, out passwordSalt);
 
-            user.PasswordHash = passwordHash;
-            user.PasswordSalt = passwordSalt;
+            // user.PasswordHash = passwordHash;
+            // user.PasswordSalt = passwordSalt;
 
-            await _context.User.AddAsync(user);
+            await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();
 
             return user;
@@ -63,7 +63,7 @@ namespace DemoApp.API.services
 
         public async Task<bool> UserExist(string username)
         {
-            if (await _context.User.AnyAsync(x => x.Username == username))
+            if (await _context.Users.AnyAsync(x => x.UserName == username))
             {
                 return true;
             }

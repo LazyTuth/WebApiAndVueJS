@@ -1,16 +1,12 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.AspNetCore.Identity;
 
 namespace DemoApp.API.Data
 {
-    public class Role
+    public class Role : IdentityRole<int>
     {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public virtual int Id { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public virtual IEnumerable<User> Users { get; set; }
+        public ICollection<UserRole> UserRoles { get; set; }
     }
 }

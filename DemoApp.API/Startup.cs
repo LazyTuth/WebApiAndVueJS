@@ -9,10 +9,13 @@ using DemoApp.API.Data;
 using DemoApp.API.Helpers;
 using DemoApp.API.services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.EntityFrameworkCore;
@@ -36,25 +39,47 @@ namespace DemoApp.API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            // Begin register Identity Services
+            IdentityBuilder builder = services.AddIdentityCore<User>(opt =>
+            {
+                // allow using week password for development
+                opt.Password.RequireDigit = false;
+                opt.Password.RequiredLength = 4;
+                opt.Password.RequireNonAlphanumeric = false;
+                opt.Password.RequireUppercase = false;
+            });
+
+            builder = new IdentityBuilder(builder.UserType, typeof(Role), builder.Services);
+            builder.AddEntityFrameworkStores<MyDbContext>();
+            builder.AddRoleValidator<RoleValidator<Role>>();
+            builder.AddRoleManager<RoleManager<Role>>();
+            builder.AddSignInManager<SignInManager<User>>();
+            // End Register Identity Services
+
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+                            {
+                                options.TokenValidationParameters = new TokenValidationParameters
+                                {
+                                    ValidateIssuerSigningKey = true,
+                                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(Configuration.GetSection("AppSettings:Token").Value)),
+                                    ValidateIssuer = false,
+                                    ValidateAudience = false,
+                                    ValidateLifetime = true,
+                                    ClockSkew = TimeSpan.Zero
+                                };
+                            });
+
+            services.AddMvc(options =>
+            {
+                // Register Authorize Global not to add Authorize Attribute each Controller
+                var policy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
+                options.Filters.Add(new AuthorizeFilter(policy));
+            }).SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
             services.AddAutoMapper(Assembly.GetAssembly(typeof(AutoMapperProfiles)));
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
             services.AddDbContext<MyDbContext>(x => x.UseSqlite(Configuration.GetConnectionString("SqliteConnection"),
-                                                                b => b.MigrationsAssembly("DemoApp.API")).UseLazyLoadingProxies());
+                                                                b => b.MigrationsAssembly("DemoApp.API"))); //UseLazyLoadingProxies()
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-            services.AddScoped<IAuthRepository, AuthRepository>();
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                                    .AddJwtBearer(options =>
-                                    {
-                                        options.TokenValidationParameters = new TokenValidationParameters
-                                        {
-                                            ValidateIssuerSigningKey = true,
-                                            IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(Configuration.GetSection("AppSettings:Token").Value)),
-                                            ValidateIssuer = false,
-                                            ValidateAudience = false,
-                                            ValidateLifetime = true,
-                                            ClockSkew = TimeSpan.Zero
-                                        };
-                                    });
+            // services.AddScoped<IAuthRepository, AuthRepository>();
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
             services.AddScoped<IUrlHelper>(factory =>
             {

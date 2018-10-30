@@ -3,7 +3,8 @@ import axios from "axios";
 
 const state = {
   token: null,
-  userFullname: null
+  userFullname: null,
+  userRoles: null
 };
 
 const getters = {
@@ -12,6 +13,9 @@ const getters = {
   },
   isAuthenticated(state) {
     return state.token !== null;
+  },
+  getUserRoles(state) {
+    return state.userRoles;
   }
 };
 
@@ -20,6 +24,7 @@ const mutations = {
     if (userData.statusCode != 201) {
       state.token = userData.token;
       state.userFullname = userData.userFullname;
+      state.userRoles = userData.userRoles;
     }
   },
   logOut(state) {
@@ -27,6 +32,7 @@ const mutations = {
     localStorage.removeItem("token");
     localStorage.removeItem("userFullname");
     localStorage.removeItem("expireIn");
+    localStorage.removeItem("userRoles");
     router.replace("/signin");
   }
 };
@@ -56,15 +62,17 @@ const actions = {
         commit("authUser", {
           statusCode: res.status,
           token: res.data.token,
-          userFullname: res.data.userFullname
+          userFullname: res.data.userFullname,
+          userRoles: res.data.roles
         });
         const date = new Date();
         let expDate = new Date(res.data.expiration);
         let expSecond = expDate - date;
-        sessionStorage.setItem("token", res.data.token);
+        // sessionStorage.setItem("token", res.data.token);
         localStorage.setItem("token", res.data.token);
         localStorage.setItem("userFullname", res.data.userFullname);
         localStorage.setItem("expireIn", expDate);
+        localStorage.setItem("userRoles", res.data.roles);
 
         dispatch("setLogoutTimer", expSecond);
         // router.replace("/admin/product");
@@ -85,9 +93,11 @@ const actions = {
       return;
     }
     const userFullname = localStorage.getItem("userFullname");
+    const userRoles = localStorage.getItem("userRoles");
     commit("authUser", {
       token: token,
-      userFullname: userFullname
+      userFullname: userFullname,
+      userRoles: userRoles
     });
   },
   logOut({ commit }) {
@@ -95,6 +105,7 @@ const actions = {
     localStorage.removeItem("token");
     localStorage.removeItem("userFullname");
     localStorage.removeItem("expireIn");
+    localStorage.removeItem("userRoles");
     router.replace("/signin");
   }
 };

@@ -38,7 +38,12 @@ export const router = new Router({
         if (localStorage.getItem("token")) {
           const now = new Date();
           if (now < new Date(localStorage.expireIn)) {
-            next();
+            const roles = localStorage.getItem("userRoles");
+            if (roles.indexOf("Admin") > -1) {
+              next();
+            } else {
+              next("/");
+            }
           } else {
             deleteLocalStorage();
             next("/signin");

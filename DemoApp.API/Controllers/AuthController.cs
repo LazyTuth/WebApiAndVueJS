@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -6,44 +7,55 @@ using System.Threading.Tasks;
 using DemoApp.API.Data;
 using DemoApp.API.Dtos;
 using DemoApp.API.services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
 namespace DemoApp.API.Controllers
 {
+    [AllowAnonymous]
     [Route("api/auth")]
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly IAuthRepository _repo;
         private readonly IConfiguration _config;
-        public AuthController(IAuthRepository repo, IConfiguration config)
+        private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User> _signInManager;
+        public AuthController(IConfiguration config, UserManager<User> userManager, SignInManager<User> signInManager)
         {
+            _signInManager = signInManager;
+            _userManager = userManager;
             _config = config;
-            _repo = repo;
         }
 
         [HttpPost("register")]
         public async Task<IActionResult> Register(UserForRegisterDto userDto)
         {
             userDto.Username = userDto.Username.ToLower();
-            if (await _repo.UserExist(userDto.Username))
-                return BadRequest("Username already existed");
+
             var userToCreate = new User
             {
-                Username = userDto.Username,
+                UserName = userDto.Username,
                 FirstName = userDto.Firstname,
                 LastName = userDto.Lastname,
-                Email = userDto.Email,
-                RoleId = 1
+                Email = userDto.Email
+                //RoleId = 1
             };
-            var createdUser = _repo.Register(userToCreate, userDto.Password);
 
-            return StatusCode(201);
+            var result = await _userManager.CreateAsync(userToCreate, userDto.Password);
+
+            if (result.Succeeded)
+            {
+                await _userManager.AddToRoleAsync(userToCreate, "Member");
+                return StatusCode(201);
+            }
+            return BadRequest(result.Errors);
         }
 
-        public string CreateJwtToken(Claim[] claims, DateTime expirationDate)
+        public string CreateJwtToken(List<Claim> claims, DateTime expirationDate)
         {
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config.GetSection("AppSettings:Token").Value));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
@@ -63,25 +75,37 @@ namespace DemoApp.API.Controllers
         public async Task<IActionResult> Login(UserForLoginDto userDto)
         {
             userDto.Username = userDto.Username.ToLower();
-            var userFromRepo = await _repo.Login(userDto.Username, userDto.Password);
-            if (userFromRepo == null)
-                return Unauthorized();
-            
-            // Jwt
-            var claims = new []
-            {
-                new Claim(ClaimTypes.NameIdentifier, userFromRepo.Id.ToString()),
-                new Claim(ClaimTypes.Name, userFromRepo.Username)
-            };
-            var expirationDate = DateTime.Now.AddHours(5);
-            var token = CreateJwtToken(claims, expirationDate);
+            var user = await _userManager.FindByNameAsync(userDto.Username);
 
-            return Ok(new {
-                userId = userFromRepo.Id,
-                userFullname = userFromRepo.FirstName + ' ' + userFromRepo.LastName,
-                token = token,
-                expiration = expirationDate
-            });
+            var result = await _signInManager.CheckPasswordSignInAsync(user, userDto.Password, false);
+            if (result.Succeeded)
+            {
+                // Jwt
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                    new Claim(ClaimTypes.Name, user.UserName)
+                };
+
+                var roles = await _userManager.GetRolesAsync(user);
+                foreach (var role in roles)
+                {
+                    claims.Add(new Claim(ClaimTypes.Role, role));
+                }
+
+                var expirationDate = DateTime.Now.AddHours(5);
+                var token = CreateJwtToken(claims, expirationDate);
+
+                return Ok(new
+                {
+                    userId = user.Id,
+                    userFullname = user.FirstName + ' ' + user.LastName,
+                    token = token,
+                    roles = roles,
+                    expiration = expirationDate
+                });
+            }
+            return Unauthorized();
         }
     }
 }

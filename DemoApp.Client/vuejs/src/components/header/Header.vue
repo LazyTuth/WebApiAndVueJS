@@ -11,7 +11,7 @@
                     <router-link class="nav-item" tag="li" active-class="active" exact to="/">
                       <a class="nav-link">Dashboard</a>
                     </router-link>
-                    <li v-if="isAuthenticated" class="nav-item dropdown">
+                    <li v-if="isAuthenticated && isRoleValid" class="nav-item dropdown">
                       <a class="nav-link dropdown-toggle" 
                                     id="navbarDropdown" 
                                     role="button" 
@@ -51,6 +51,10 @@ export default {
     ...mapGetters(["isAuthenticated"]),
     userFullName() {
       return this.$store.getters.userFullname;
+    },
+    isRoleValid() {
+      const roles = this.$store.getters.getUserRoles;
+      return roles.indexOf("Admin") > -1;
     }
   },
   methods: {
