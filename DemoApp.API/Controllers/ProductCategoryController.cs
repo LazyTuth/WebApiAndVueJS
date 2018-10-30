@@ -25,6 +25,7 @@ namespace DemoApp.API.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetProductCate()
         {
             var productFromRepo = await _cateRepo.GetAll();

@@ -1,40 +1,72 @@
 <template>
     <div id="signup">
         <div class="signup-form">
-            <form @submit.prevent="onSubmit">
-                <div class="input">
-                    <label for="firstname">Firstname</label>
-                    <input type="text" id="firstname" v-model="firstname">
-                </div>
-                <div class="input">
-                    <label for="lastname">Lastname</label>
-                    <input type="text" id="lastname" v-model="lastname">
-                </div>
-                <div class="input">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" v-model="email">
-                </div>
-                <div class="input">
-                    <label for="username">Username</label>
-                    <input type="text" id="username" v-model="username">
-                </div>
-                <div class="input">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" v-model="password">
-                </div>
-                <div class="input">
-                    <label for="confirm-password">Confirm password</label>
-                    <input type="password" id="confirm-password" v-model="confirmPassword">
-                </div>
-                <div class="submit">
-                    <button type="submit">Submit</button>
-                </div>
-            </form>
+          <form @submit.prevent="onSubmit">
+              <div class="input" :class="{invalid: $v.firstname.$error}">
+                  <label for="firstname">Firstname</label>
+                  <input type="text" id="firstname" @blur="$v.firstname.$touch()" v-model="firstname">
+                  <p v-if="!$v.firstname.maxLen" 
+                      class="validate-message">This field cannot have more than {{$v.firstname.$params.maxLen.max}} characters.</p>
+                  <p class="validate-message" 
+                      :style="[($v.firstname.$error) ? {'display': 'block'} : {'display': 'none'}]" 
+                      v-if="!$v.firstname.required">This field must not be empty.</p>
+              </div>
+              <div class="input" :class="{invalid: $v.lastname.$error}">
+                  <label for="lastname">Lastname</label>
+                  <input type="text" id="lastname" @blur="$v.lastname.$touch()" v-model="lastname">
+                  <p v-if="!$v.lastname.maxLen" 
+                      class="validate-message">This field cannot have more than {{$v.lastname.$params.maxLen.max}} characters.</p>
+                  <p class="validate-message" 
+                      :style="[($v.lastname.$error) ? {'display': 'block'} : {'display': 'none'}]" 
+                      v-if="!$v.lastname.required">This field must not be empty.</p>
+              </div>
+              <div class="input" :class="{invalid: $v.email.$error}">
+                  <label for="email">Email</label>
+                  <input type="email" id="email" @blur="$v.email.$touch()" v-model="email">
+                  <p class="validate-message" v-if="!$v.email.email">Please provide valid email address.</p>
+                  <p class="validate-message" 
+                      :style="[($v.email.$error) ? {'display': 'block'} : {'display': 'none'}]" 
+                      v-if="!$v.email.required">This field must not be empty.</p>
+              </div>
+              <div class="input" :class="{invalid: $v.username.$error}">
+                  <label for="username">Username</label>
+                  <input type="text" id="username" @blur="$v.username.$touch()" v-model="username">
+                  <p class="validate-message" v-if="!$v.username.minLen">Username must larger than {{$v.username.$params.minLen.min}} characters.</p>
+                  <p class="validate-message" v-if="!$v.username.maxLen">Username Length must be between {{$v.username.$params.minLen.min}} and {{$v.username.$params.maxLen.max}} characters.</p>
+                  <p class="validate-message" 
+                      :style="[($v.username.$error) ? {'display': 'block'} : {'display': 'none'}]" 
+                      v-if="!$v.username.required">This field must not be empty.</p>
+              </div>
+              <div class="input" :class="{invalid: $v.password.$error}">
+                  <label for="password">Password</label>
+                  <input type="password" id="password" @blur="$v.password.$touch()" v-model="password">
+                  <p class="validate-message" v-if="!$v.password.minLen">Password must be at least {{$v.password.$params.minLen.min}} characters.</p>
+                  <p class="validate-message" 
+                      :style="[($v.password.$error) ? {'display': 'block'} : {'display': 'none'}]" 
+                      v-if="!$v.password.required">This field must not be empty.</p>
+              </div>
+              <div class="input" :class="{invalid: $v.confirmPassword.$error}">
+                  <label for="confirm-password">Confirm password</label>
+                  <input type="password" @blur="$v.confirmPassword.$touch()" id="confirm-password" v-model="confirmPassword">
+                  <p v-if="!$v.confirmPassword.sameAs && $v.confirmPassword.$model != ''">Confirm Password does not match.</p>
+              </div>
+              <div class="submit">
+                  <button type="submit" :disabled="$v.$invalid" @click="$v.$touch()">Submit</button>
+              </div>
+          </form>
         </div>
     </div>
 </template>
 
 <script>
+import { modelStateErrorMixin } from "../../mixins/modelStateErrorMixin.js";
+import {
+  required,
+  email,
+  maxLength,
+  minLength,
+  sameAs
+} from "vuelidate/lib/validators";
 export default {
   name: "signup",
   data: function() {
@@ -46,6 +78,32 @@ export default {
       password: "",
       confirmPassword: ""
     };
+  },
+  validations: {
+    email: {
+      required,
+      email
+    },
+    firstname: {
+      maxLen: maxLength(20),
+      required
+    },
+    lastname: {
+      required,
+      maxLen: maxLength(50)
+    },
+    username: {
+      minLen: minLength(4),
+      maxLen: maxLength(10),
+      required
+    },
+    password: {
+      minLen: minLength(6),
+      required
+    },
+    confirmPassword: {
+      sameAs: sameAs("password")
+    }
   },
   methods: {
     onSubmit() {
@@ -59,6 +117,10 @@ export default {
       };
       this.$store.dispatch("signUp", formData);
     }
+  },
+  mixins: [modelStateErrorMixin],
+  mounted() {
+    this.clearModelStateFunction();
   }
 };
 </script>

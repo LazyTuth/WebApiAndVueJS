@@ -187,3 +187,12 @@
     margin-bottom: 30px;
   }
 }
+
+.invalid input {
+  background-color: #ca5064
+}
+.validate-message {
+  color: #ca5064;
+  font-style: italic;
+  font-size: 12px;
+}

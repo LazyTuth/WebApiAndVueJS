@@ -90,6 +90,7 @@ namespace DemoApp.API.Controllers
         }
 
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetProductById(int id)
         {
             var productFromRepo = await _productRepo.Find(id);

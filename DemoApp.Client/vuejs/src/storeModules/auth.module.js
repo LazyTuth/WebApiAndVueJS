@@ -47,7 +47,7 @@ const actions = {
         });
         router.replace("/signin");
       })
-      .catch(error => console.log(error));
+      .catch(error => commit("getModelState", error));
   },
   signIn({ commit, dispatch }, dataAuth) {
     axios
@@ -70,7 +70,9 @@ const actions = {
         // router.replace("/admin/product");
         router.replace("/");
       })
-      .catch(error => console.log(error));
+      .catch(error => {
+        commit("getModelState", error);
+      });
   },
   keepLogin({ commit }) {
     const token = localStorage.getItem("token");

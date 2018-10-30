@@ -3,7 +3,17 @@
       <h1>Happy Shopping</h1>
       <hr>
       <div class="row">
-        <div v-for="product in productList" :key="product.id" class="col-md-3 col-sm-6" style="margin-bottom: 5px;">
+        <div class="col-md-12 col-sm-6">
+          <div class="form-inline" style="margin-bottom: 20px;">
+            <span class="filter-text">Product Category</span>
+            <select class="form-control" name="productCate" id="productCate" v-model="selectedProductCate" @change="onChangeProductCate($event)">
+              <option v-for="prd in productCateList" :value="prd.cateCode" :key="prd.cateCode">{{prd.description}}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div v-for="product in filteredProduct" :key="product.id" class="col-md-3 col-sm-6" style="margin-bottom: 5px;">
           <div class="product-grid">
             <div class="product-image">
               <a>
@@ -12,7 +22,7 @@
               </a>
               <ul class="social">
                 <li>
-                  <a data-tip="Quick View"><i class="fa fa-search"></i></a>
+                  <a data-tip="Quick View" @click="goToDetail(product.id)"><i class="fa fa-search"></i></a>
                 </li>
                 <li>
                   <a data-tip="Add to Wishlist"><i class="fa fa-shopping-bag"></i></a>
@@ -47,8 +57,22 @@ export default {
       productList: [],
       productImages1: null,
       productImages2: null,
-      rootApiUrl: "http://localhost:5000/"
+      rootApiUrl: "http://localhost:5000/",
+      selectedProductCate: "all",
+      productCateList: []
     };
+  },
+  computed: {
+    filteredProduct() {
+      const self = this;
+      if (this.selectedProductCate != "all") {
+        return this.productList.filter(e => {
+          return e.productCateCode == self.selectedProductCate;
+        });
+      } else {
+        return this.productList;
+      }
+    }
   },
   methods: {
     async getListProduct() {
@@ -56,14 +80,38 @@ export default {
       await this.$store
         .dispatch("getProductForShoppingPage")
         .then(res => {
-          debugger;
           self.productList = res;
         })
         .catch(err => console.log(err));
+    },
+    async getListProductCategory() {
+      const self = this;
+      await this.$store.dispatch("getProductCategory").then(res => {
+        res.unshift({ cateCode: "all", description: "All" });
+        self.productCateList = res;
+      });
+    },
+    goToDetail(productId) {
+      this.$router.replace({
+        name: "productDetail",
+        params: { productId: productId }
+      });
+    },
+    onChangeProductCate(e) {
+      this.selectedProductCate = e.target.value;
     }
   },
   mounted() {
     this.getListProduct();
+    this.getListProductCategory();
   }
 };
 </script>
+
+<style scoped>
+.filter-text {
+  font-style: italic;
+  font-size: 14px;
+  margin-right: 10px;
+}
+</style>

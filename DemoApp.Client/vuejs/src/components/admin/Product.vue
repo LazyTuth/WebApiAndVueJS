@@ -1,114 +1,126 @@
 <template>
     <div id="product-screen">
-        <table class="table table-bordered table-striped">
-            <thead>
-                <tr>
-                    <th class="table-header-custom">Product</th>
-                    <th class="table-header-custom">Type</th>
-                    <th class="table-header-custom">Price</th>
-                    <th class="table-header-custom" style="width: 110px;">
-                        <span class="fas fa-plus-circle btn-icon-color" @click="onClickShowModal('create')" style="font-size: 18px;" title="Add New"></span>
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-if="lstDataObjects.length > 0" v-for='product in lstDataObjects' :key='product.productName'>
-                    <td>{{ product.productName }}</td>
-                    <td>{{ product.productCateName }}</td>
-                    <td>{{ product.price | to-currency }}</td>
-                    <td>
-                        <button @click="onClickShowModal('edit', product.id)" class="btn btn-link"><span class="far fa-edit btn-icon-color" title="Edit"></span></button>
-                        <button @click="onDeleteButtonClick(product.id)" class="btn btn-link"><span class="far fa-trash-alt btn-icon-color" title="Remove"></span></button>
-                    </td>
-                </tr>
-                <tr v-if="lstDataObjects.length <= 0">
-                    <td colspan="4">No Data</td>
-                </tr>
-            </tbody>
-        </table>
-        <div class="flex_column_custom" v-if="lstDataObjects.length > 0">
-            <div class="custom-paging-info">
-                Items {{firstRowOnPage}} to {{lastRowOnPage}} of {{totalRows}}
+      <h1>Product management</h1>
+      <hr>
+      <table class="table table-bordered table-striped">
+          <thead>
+              <tr>
+                  <th class="table-header-custom">Product</th>
+                  <th class="table-header-custom">Type</th>
+                  <th class="table-header-custom">Price</th>
+                  <th class="table-header-custom" style="width: 110px;">
+                      <span class="fas fa-plus-circle btn-icon-color" @click="onClickShowModal('create')" style="font-size: 18px;" title="Add New"></span>
+                  </th>
+              </tr>
+          </thead>
+          <tbody>
+              <tr v-if="lstDataObjects.length > 0" v-for='product in lstDataObjects' :key='product.productName'>
+                  <td>{{ product.productName }}</td>
+                  <td>{{ product.productCateName }}</td>
+                  <td>{{ product.price | to-currency }}</td>
+                  <td>
+                      <button @click="onClickShowModal('edit', product.id)" class="btn btn-link"><span class="far fa-edit btn-icon-color" title="Edit"></span></button>
+                      <button @click="onDeleteButtonClick(product.id)" class="btn btn-link"><span class="far fa-trash-alt btn-icon-color" title="Remove"></span></button>
+                  </td>
+              </tr>
+              <tr v-if="lstDataObjects.length <= 0">
+                  <td colspan="4">No Data</td>
+              </tr>
+          </tbody>
+      </table>
+      <div class="flex_column_custom" v-if="lstDataObjects.length > 0">
+          <div class="custom-paging-info">
+              Items {{firstRowOnPage}} to {{lastRowOnPage}} of {{totalRows}}
+          </div>
+          <div class="custom-paging-bar pull-right">
+              <ul class="pagination" style="margin: 0px;">
+                  <li @click="onChangePageNumber(pageNumber - 1)" class="page-item" v-if="hasPreviousPage"><a class="page-link">&larr; Previous</a></li>
+                  <li @click="onChangePageNumber(pageNumber - 1)" :class="{active: activePageId === pageNumber - 1}" class="page-item" v-if="hasPreviousPage"><a class="page-link">{{pageNumber - 1}}</a></li>
+                  <li @click="onChangePageNumber(pageNumber)" :class="{active: activePageId === pageNumber}" class="page-item active"><a class="page-link">{{pageNumber}}</a></li>
+                  <li @click="onChangePageNumber(pageNumber + 1)" :class="{active: activePageId === pageNumber + 1}" class="page-item" v-if="hasNextPage"><a class="page-link">{{pageNumber + 1}}</a></li>
+                  <li @click="onChangePageNumber(pageNumber + 1)" class="page-item" v-if="hasNextPage"><a class="page-link">Next &rarr;</a></li>
+              </ul>
+          </div>
+      </div>
+      
+      <app-modal v-if="showModal">
+        <h5 slot="header" class="modal-title">{{modalTitle}}</h5>
+        <div slot="body">
+          <form id="formCreateProduct" @submit.prevent="onFormSubmit">
+            <div class="form-group" :class="{invalid: $v.productName.$error}">
+              <label for="productName">Product Name</label>
+              <input type="text" class="form-control" id="productName" name="productName" @blur="$v.productName.$touch()" v-model="productName">
+              <p class="validate-message" v-if="!$v.productName.minLen">Product Name must larger than {{$v.productName.$params.minLen.min}} characters.</p>
+              <p class="validate-message" v-if="!$v.productName.maxLen">Product Name Length must be between {{$v.productName.$params.minLen.min}} and {{$v.productName.$params.maxLen.max}} characters.</p>
+              <p class="validate-message" 
+                    :style="[($v.productName.$error) ? {'display': 'block'} : {'display': 'none'}]" 
+                    v-if="!$v.productName.required">This field must not be empty.</p>
             </div>
-            <div class="custom-paging-bar pull-right">
-                <ul class="pagination" style="margin: 0px;">
-                    <li @click="onChangePageNumber(pageNumber - 1)" class="page-item" v-if="hasPreviousPage"><a class="page-link">&larr; Previous</a></li>
-                    <li @click="onChangePageNumber(pageNumber - 1)" :class="{active: activePageId === pageNumber - 1}" class="page-item" v-if="hasPreviousPage"><a class="page-link">{{pageNumber - 1}}</a></li>
-                    <li @click="onChangePageNumber(pageNumber)" :class="{active: activePageId === pageNumber}" class="page-item active"><a class="page-link">{{pageNumber}}</a></li>
-                    <li @click="onChangePageNumber(pageNumber + 1)" :class="{active: activePageId === pageNumber + 1}" class="page-item" v-if="hasNextPage"><a class="page-link">{{pageNumber + 1}}</a></li>
-                    <li @click="onChangePageNumber(pageNumber + 1)" class="page-item" v-if="hasNextPage"><a class="page-link">Next &rarr;</a></li>
-                </ul>
+            <div class="form-group" :class="{invalid: $v.description.$error}">
+              <label for="description">Description</label>
+              <input type="text" class="form-control" id="description" name="description" @blur="$v.description.$touch()" v-model="description">
+              <p v-if="!$v.description.maxLen" 
+                    class="validate-message">This field cannot have more than {{$v.description.$params.maxLen.max}} characters.</p>
             </div>
-        </div>
-        
-        <app-modal v-if="showModal">
-          <h5 slot="header" class="modal-title">{{modalTitle}}</h5>
-          <div slot="body">
-            <form id="formCreateProduct" @submit.prevent="onFormSubmit">
-              <div class="form-group">
-                <label for="productName">Product Name</label>
-                <input type="text" class="form-control" id="productName" name="productName" v-model="productName">
-              </div>
-              <div class="form-group">
-                <label for="description">Description</label>
-                <input type="text" class="form-control" id="description" name="description" v-model="description">
-              </div>
-              <div class="form-group currency-input">
+            <div class="form-group" :class="{invalid: $v.newDisplay.$error}">
+              <div class="currency-input">
                 <label for="price">Price</label>
-                <input type="text" class="form-control" id="price" name="price" @keyup="onKeyUpFunction($event)" v-model="newDisplay">
+                <input type="text" class="form-control" id="price" name="price" @keyup="onKeyUpFunction($event)" @blur="$v.newDisplay.$touch()" v-model="newDisplay">
                 <span class="currency-symbol">$</span>
               </div>
-              <div v-if="(isModalCreate && !isReUploadImages)||(!isModalCreate && isReUploadImages)" class="form-group">
-                <label for="price">Images</label>
-                <!-- <input type="text" class="form-control" id="images" name="images" v-model="imagesUrl"> -->
-                <div class="dropbox" v-if="isInitial || isSaving">
-                  <input type="file" multiple name="Image" ref="image" :disabled="isSaving" @change="filesChange($event.target.name, $event.target.files); fileCount = $event.target.files.length"
-                    accept="image/*" class="input-file">
-                  <p v-if="isInitial">
-                    Drag your file(s) here to begin<br> or click to browse
-                  </p>
-                  <p v-if="isSaving">
-                    Uploading {{ fileCount }} files...
-                  </p>
-                </div>
+              <div>
+                <p class="validate-message" 
+                      :style="[($v.newDisplay.$error) ? {'display': 'block'} : {'display': 'none'}]" 
+                      v-if="!$v.newDisplay.required">This field must not be empty.</p>
+              </div>
+            </div>
+            <div v-if="(isModalCreate && !isReUploadImages)||(!isModalCreate && isReUploadImages)" class="form-group">
+              <label for="price">Images</label>
+              <!-- <input type="text" class="form-control" id="images" name="images" v-model="imagesUrl"> -->
+              <div class="dropbox" v-if="isInitial || isSaving">
+                <input type="file" multiple name="Image" ref="image" :disabled="isSaving" @change="filesChange($event.target.name, $event.target.files); fileCount = $event.target.files.length"
+                  accept="image/*" class="input-file">
+                <p v-if="isInitial">
+                  Drag your file(s) here to begin<br> or click to browse
+                </p>
+                <p v-if="isSaving">
+                  Uploading {{ fileCount }} files...
+                </p>
+              </div>
 
-                <div v-if="isSuccess">
-                  <p>
-                    <a href="javascript:void(0)" @click="reset()">Upload again</a>
-                  </p>
-                  <div class="list-unstyled" id="preloadFiles">
-                    <!-- <li v-for="item in listFileToUpload" :key="item.originalName">
-                      <img :src="item.url" class="img-responsive img-thumbnail" :alt="item.originalName">
-                    </li> -->
-                  </div>
+              <div v-if="isSuccess">
+                <p>
+                  <a href="javascript:void(0)" @click="reset()">Upload again</a>
+                </p>
+                <div class="list-unstyled" id="preloadFiles"></div>
+              </div>
+            </div>
+            <div v-if="justForEditPopUp" class="form-group">
+              <label for="price">Images</label>
+              <div>
+                <p>
+                  <a href="javascript:void(0)" @click="reset(); justForEditPopUp = false; isReUploadImages = true">Upload again ? It will remove all Old images</a>
+                </p>
+                <div class="list-unstyled">
+                  <img v-for="image in listProductImagesEdit" style="width:100px;" :key="image" :src="rootApiUrl + imagesUrl + '/' + image" :alt="productName">
                 </div>
               </div>
-              <div v-if="justForEditPopUp" class="form-group">
-                <label for="price">Images</label>
-                <div>
-                  <p>
-                    <a href="javascript:void(0)" @click="reset(); justForEditPopUp = false; isReUploadImages = true">Upload again ? It will remove all Old images</a>
-                  </p>
-                  <div class="list-unstyled">
-                    <img v-for="image in listProductImagesEdit" style="width:100px;" :key="image" :src="rootApiUrl + imagesUrl + '/' + image" :alt="productName">
-                  </div>
-                </div>
-              </div>
-              <div class="form-group">
-                <label for="productCate">Product Category</label>
-                <select class="form-control" name="productCate" id="productCate" v-model="selected" @change="onChangeProductCate($event)">
-                  <option v-for="prd in dataProductCate" :value="prd.cateCode" :key="prd.cateCode">{{prd.description}}</option>
-                </select>
-              </div>
-              <hr>
-              <div class="form-inline" style="justify-content: flex-end;">
-                <button type="submit" class="btn btn-primary" style="margin-right: 10px;">Save changes</button>
-                <button @click="closeModal()" type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-              </div>
-            </form>
-          </div>
-          
-        </app-modal>
+            </div>
+            <div class="form-group">
+              <label for="productCate">Product Category</label>
+              <select class="form-control" name="productCate" id="productCate" v-model="selected" @change="onChangeProductCate($event)">
+                <option v-for="prd in dataProductCate" :value="prd.cateCode" :key="prd.cateCode">{{prd.description}}</option>
+              </select>
+            </div>
+            <hr>
+            <div class="form-inline" style="justify-content: flex-end;">
+              <button type="submit" @click="$v.$touch()" class="btn btn-primary" style="margin-right: 10px;">Save changes</button>
+              <button @click="closeModal()" type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+          </form>
+        </div>
+        
+      </app-modal>
     </div>
 </template>
 
@@ -203,6 +215,7 @@ import { modalMixin } from "../../mixins/modalMixin.js";
 import { pagingMixin } from "../../mixins/pagingMixin.js";
 import { formatPriceMixin } from "../../mixins/formatPriceMixin.js";
 import { uploadFileMixin } from "../../mixins/uploadFileMixin.js";
+import { required, maxLength, minLength } from "vuelidate/lib/validators";
 export default {
   data: function() {
     return {
@@ -246,7 +259,6 @@ export default {
         .catch(err => console.log(err));
     },
     async onFormSubmit() {
-      debugger;
       const formDataTest = new FormData();
       if (this.listFileToUpload.length > 0) {
         this.listFileToUpload.forEach(element => {
@@ -289,7 +301,6 @@ export default {
         await this.$store
           .dispatch("getProductById", { id: productId })
           .then(res => {
-            debugger;
             self.productSelectedId = productId;
             self.productName = res.productName;
             self.description = res.description;
@@ -343,6 +354,19 @@ export default {
       this.isReUploadImages = false;
       this.justForEditPopUp = false;
       this.listProductImagesEdit = [];
+    }
+  },
+  validations: {
+    productName: {
+      required,
+      minLen: minLength(5),
+      maxLen: maxLength(50)
+    },
+    description: {
+      maxLen: maxLength(100)
+    },
+    newDisplay: {
+      required
     }
   },
   mixins: [modalMixin, pagingMixin, formatPriceMixin, uploadFileMixin],

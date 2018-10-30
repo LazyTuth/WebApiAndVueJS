@@ -14,7 +14,6 @@ const actions = {
     return await axios
       .get("/products/shopping")
       .then(res => {
-        debugger;
         return Promise.resolve(res.data);
       })
       .catch(err => console.log(err));
@@ -45,11 +44,9 @@ const actions = {
         Authorization: `Bearer ${authModule.state.token}`
       }
     };
-    debugger;
     return await axios
       .post("/products/create", dataCreated, config)
       .then(res => {
-        debugger;
         return Promise.resolve(res.status);
       })
       .catch(err => console.log(err.message));
@@ -70,7 +67,6 @@ const actions = {
         Authorization: `Bearer ${authModule.state.token}`
       }
     };
-    debugger;
     return await axios
       .patch("products/edit", dataUpdated, config)
       .then(res => {

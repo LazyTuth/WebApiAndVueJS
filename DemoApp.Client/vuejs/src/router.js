@@ -5,6 +5,7 @@ import SignUp from "./components/auth/SignUp.vue";
 import Dashboard from "./components/dashboard/Dashboard.vue";
 import Admin from "./components/admin/Admin.vue";
 import Product from "./components/admin/Product.vue";
+import ProductDetail from "./components/dashboard/ProductDetail.vue";
 
 Vue.use(Router);
 
@@ -57,6 +58,11 @@ export const router = new Router({
       path: "/signup",
       name: "signup",
       component: SignUp
+    },
+    {
+      path: "/products/:productId",
+      name: "productDetail",
+      component: ProductDetail
     },
     {
       path: "*",

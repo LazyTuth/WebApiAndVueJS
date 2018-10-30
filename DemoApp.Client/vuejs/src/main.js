@@ -4,6 +4,7 @@ import axios from "axios";
 import { router } from "./router";
 import store from "./store";
 import "./registerServiceWorker";
+import Vuelidate from "vuelidate";
 
 import "bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -30,6 +31,7 @@ Vue.filter("to-currency", function(value) {
 
 Vue.component("app-modal", Modal);
 Vue.use(VueSweetalert2);
+Vue.use(Vuelidate);
 
 new Vue({
   router,

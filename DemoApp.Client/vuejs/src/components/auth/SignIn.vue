@@ -1,24 +1,32 @@
 <template>
     <div id="signin">
         <div class="signin-form">
-            <form @submit.prevent="onSubmit">
-                <div class="input">
-                    <label for="username">UserName</label>
-                    <input type="text" id="username" v-model="username">
-                </div>
-                <div class="input">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" v-model="password">
-                </div>
-                <div class="submit">
-                    <button type="submit">Submit</button>
-                </div>
-            </form>
+          <form @submit.prevent="onSubmit">
+              <div class="input" :class="{invalid: $v.username.$error}">
+                  <label for="username">UserName</label>
+                  <input type="text" id="username" @blur="$v.username.$touch()" v-model="username">
+                  <p class="validate-message" 
+                      :style="[($v.username.$error) ? {'display': 'block'} : {'display': 'none'}]" 
+                      v-if="!$v.username.required">This field must not be empty.</p>
+              </div>
+              <div class="input" :class="{invalid: $v.password.$error}">
+                  <label for="password">Password</label>
+                  <input type="password" id="password" @blur="$v.password.$touch()" v-model="password">
+                  <p class="validate-message" 
+                      :style="[($v.password.$error) ? {'display': 'block'} : {'display': 'none'}]" 
+                      v-if="!$v.password.required">This field must not be empty.</p>
+              </div>
+              <div class="submit">
+                  <button :disabled="$v.$invalid" @click="$v.$touch()" type="submit">Submit</button>
+              </div>
+          </form>
         </div>
     </div>
 </template>
 
 <script>
+import { modelStateErrorMixin } from "../../mixins/modelStateErrorMixin.js";
+import { required } from "vuelidate/lib/validators";
 export default {
   name: "signin",
   data: function() {
@@ -33,9 +41,20 @@ export default {
         username: this.username,
         password: this.password
       };
-      console.log(formData);
       this.$store.dispatch("signIn", formData);
     }
+  },
+  validations: {
+    username: {
+      required
+    },
+    password: {
+      required
+    }
+  },
+  mixins: [modelStateErrorMixin],
+  mounted() {
+    this.clearModelStateFunction();
   }
 };
 </script>
