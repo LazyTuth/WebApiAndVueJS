@@ -5,8 +5,11 @@
                 <div class="modal-header">
                     <slot name="header"></slot>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body" style="max-height: 60vh; overflow-y: auto;">
                     <slot name="body"></slot>
+                </div>
+                <div class="modal-footer">
+                    <slot name="footer"></slot>
                 </div>
             </div>
         </div>

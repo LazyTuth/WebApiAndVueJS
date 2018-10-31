@@ -9,6 +9,7 @@ export const modalMixin = {
     closeModal() {
       this.showModal = false;
       this.clearData();
+      this.reset();
     }
   }
 };

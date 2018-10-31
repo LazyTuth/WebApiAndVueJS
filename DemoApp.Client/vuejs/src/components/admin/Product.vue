@@ -112,12 +112,16 @@
                 <option v-for="prd in dataProductCate" :value="prd.cateCode" :key="prd.cateCode">{{prd.description}}</option>
               </select>
             </div>
-            <hr>
+            <!-- <hr>
             <div class="form-inline" style="justify-content: flex-end;">
               <button type="submit" @click="$v.$touch()" class="btn btn-primary" style="margin-right: 10px;">Save changes</button>
               <button @click="closeModal()" type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-            </div>
+            </div> -->
           </form>
+        </div>
+        <div slot="footer">
+          <button type="button" @click="buttonSubmitForm()" class="btn btn-primary" style="margin-right: 10px;">Save changes</button>
+          <button @click="closeModal()" type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
         </div>
         
       </app-modal>
@@ -254,6 +258,12 @@ export default {
               self.pageNumber = res.paging.pageNumber;
               self.activePageId = res.paging.pageNumber;
             }
+            if (res.items.length == 0) {
+              this.pageNumber = this.pageNumber - 1;
+              if (this.pageNumber > 0) {
+                this.onChangePageNumber(this.pageNumber);
+              }
+            }
           }
         })
         .catch(err => console.log(err));
@@ -273,6 +283,7 @@ export default {
       if (this.isModalCreate) {
         await this.$store.dispatch("createProduct", formDataTest).then(res => {
           if (res === 201) {
+            this.$v.$reset();
             this.closeModal();
             this.onChangePageNumber(this.pageNumber);
           }
@@ -354,6 +365,9 @@ export default {
       this.isReUploadImages = false;
       this.justForEditPopUp = false;
       this.listProductImagesEdit = [];
+    },
+    buttonSubmitForm() {
+      this.onFormSubmit();
     }
   },
   validations: {

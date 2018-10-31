@@ -17,8 +17,11 @@
           <div class="product-grid">
             <div class="product-image">
               <a>
-                <img class="pic-1" :src="rootApiUrl + product.imageUrl + '/' + product.listImages[0]" :alt="product.productName" />
-                <img class="pic-2" :src="rootApiUrl + product.imageUrl + '/' + product.listImages[1]" :alt="product.productName" />
+                <img v-for="(img, index) in product.listImages" v-if="index < 2"
+                    :class="'pic-'+ [index + 1]"
+                    :key="index" 
+                    :src="rootApiUrl + product.imageUrl + '/' + img" 
+                    :alt="product.productName">
               </a>
               <ul class="social">
                 <li>
