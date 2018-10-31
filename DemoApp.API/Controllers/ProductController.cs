@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
 namespace DemoApp.API.Controllers
@@ -27,13 +28,16 @@ namespace DemoApp.API.Controllers
         private readonly IUrlHelper _urlHelper;
         private readonly IConfiguration _config;
         private readonly IHostingEnvironment _hostingEnvironment;
+        private readonly MyDbContext _context;
+
         public ProductController(IRepository<Product> productRepo,
                                 IMapper mapper,
                                 IUrlHelper urlHelper,
                                 IConfiguration config,
-                                IHostingEnvironment hostingEnvironment)
+                                IHostingEnvironment hostingEnvironment, MyDbContext context)
         {
             _hostingEnvironment = hostingEnvironment;
+            _context = context;
             _config = config;
             _urlHelper = urlHelper;
             _mapper = mapper;
@@ -79,11 +83,15 @@ namespace DemoApp.API.Controllers
                 PageSize = Int32.Parse(_config.GetSection("AppSettings:PageSize").Value)
             };
 
-            var productFromRepo = await _productRepo.GetDataPaging(pagingParams);
-            var product = _mapper.Map<IEnumerable<ProductDto>>(productFromRepo.List);
+            //var productFromRepo = await _productRepo.GetDataPaging(pagingParams);
+            // get related data
+            var productFromDB = await _context.Product.Include(s => s.ProductCategory).ToListAsync();
+            var pageList = new PagedList<Product>(productFromDB.AsQueryable(),pagingParams.PageNumber, pagingParams.PageSize);
+            // var product = _mapper.Map<IEnumerable<ProductDto>>(productFromRepo.List);
+            var product = _mapper.Map<IEnumerable<ProductDto>>(pageList.List);
             var outputModel = new ProductOutputModel
             {
-                Paging = productFromRepo.GetHeader(),
+                Paging = pageList.GetHeader(),
                 Items = product.ToList()
             };
             return Ok(outputModel);
@@ -196,6 +204,9 @@ namespace DemoApp.API.Controllers
         public async Task<IActionResult> Delete(int productId)
         {
             var product = await _productRepo.Find(productId);
+            var pathToDelete = Path.Combine(_hostingEnvironment.WebRootPath, product.ImageUrl);
+            DeleteAllFileInPath(pathToDelete);
+
             int isDelete = await _productRepo.DeleteAsync(product);
             if (isDelete > 0)
             {

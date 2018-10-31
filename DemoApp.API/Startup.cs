@@ -77,7 +77,7 @@ namespace DemoApp.API
             }).SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
             services.AddAutoMapper(Assembly.GetAssembly(typeof(AutoMapperProfiles)));
             services.AddDbContext<MyDbContext>(x => x.UseSqlite(Configuration.GetConnectionString("SqliteConnection"),
-                                                                b => b.MigrationsAssembly("DemoApp.API"))); //UseLazyLoadingProxies()
+                                                                b => b.MigrationsAssembly("DemoApp.API")));
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             // services.AddScoped<IAuthRepository, AuthRepository>();
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
